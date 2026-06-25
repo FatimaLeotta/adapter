@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated")({ component: AuthenticatedLayout });
 
 const NAV = [
-  { to: "/app", label: "Inicio" }, { to: "/hoja", label: "Mi hoja laboral" },
-  { to: "/rol", label: "Ahora el rol" }, { to: "/documentos", label: "Mis documentos" },
+  { to: "/app", label: "Inicio" },
+  { to: "/hoja", label: "Mi hoja laboral" },
+  { to: "/rol", label: "Ahora el rol" },
+  { to: "/documentos", label: "Mis documentos" },
 ] as const;
 
 function AuthenticatedLayout() {
@@ -37,7 +39,7 @@ function AuthenticatedLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden text-xs text-muted-foreground sm:inline">{user.email}</span>
+            <Link to="/settings" className={cn("text-sm font-medium transition-colors", pathname.startsWith("/settings") ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>Configuración</Link>
             <Button variant="outline" size="sm" onClick={async () => { await signOut(); navigate({ to: "/login", replace: true }); }}>Salir</Button>
           </div>
         </div>
