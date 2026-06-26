@@ -308,6 +308,33 @@ function MatchPage() {
           </div>
         </section>
       )}
+
+      {showPaywall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowPaywall(false)}>
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border bg-card p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-foreground">Desbloqueá tu CV</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Un crédito cubre el flujo completo: entrevista, rol, matriz descargable y CV. Elegí cuántos querés. Comprando más, cada CV te sale más barato.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {PACKS.map(p => (
+                <div key={p.credits} className={"relative rounded-lg border bg-card p-4 text-center " + (p.popular ? "border-accent ring-1 ring-accent" : "")}>
+                  {p.popular && <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-accent-foreground">Más elegido</span>}
+                  <p className="font-display text-2xl italic text-primary">{p.credits}</p>
+                  <p className="text-xs text-muted-foreground">{p.credits === 1 ? "CV" : "CVs"}</p>
+                  <p className="mt-2 font-semibold text-foreground">{p.price}</p>
+                  <p className="text-[11px] text-muted-foreground">{p.perCv}</p>
+                  <a href={p.link} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90">Comprar</a>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground">
+              Después de pagar, te acreditamos los créditos a la brevedad y vas a poder continuar. Si ya pagaste y no ves el crédito, escribinos con tu comprobante.
+            </p>
+            <button onClick={() => setShowPaywall(false)} className="mt-4 w-full rounded-md border px-3 py-2 text-sm text-foreground hover:bg-secondary">Cerrar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
