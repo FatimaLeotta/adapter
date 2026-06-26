@@ -14,9 +14,9 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 // Links de pago de Mercado Pago — reemplazar por los tuyos reales
 const PACKS = [
-  { credits: 1, price: "$3.000", perCv: "$3.000 c/u", link: "https://link.mercadopago.com.ar/REEMPLAZAR_1CV" },
-  { credits: 3, price: "$7.500", perCv: "$2.500 c/u", link: "https://link.mercadopago.com.ar/REEMPLAZAR_3CV", popular: true },
-  { credits: 5, price: "$11.000", perCv: "$2.200 c/u", link: "https://link.mercadopago.com.ar/REEMPLAZAR_5CV" },
+  { credits: 1, price: "$3.000", perCv: "$3.000 c/u", link: "https://mpago.la/2ZrMRnG" },
+  { credits: 3, price: "$7.500", perCv: "$2.500 c/u", link: "https://mpago.la/1TEJqb9", popular: true },
+  { credits: 5, price: "$11.000", perCv: "$2.200 c/u", link: "https://mpago.la/1epGph1" },
 ];
 
 function SettingsPage() {
