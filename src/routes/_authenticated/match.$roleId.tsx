@@ -45,6 +45,7 @@ function MatchPage() {
   const [flowPaid, setFlowPaid] = useState(false); // si este flujo ya consumió su crédito
   const cvAlreadyGenerated = stage === "final" && !!cv;
   const isFreeTrial = cvsGenerated === 0 && (credits ?? 0) === 0 && !flowPaid;
+  const [showPaywall, setShowPaywall] = useState(false);
   const isFirstEver = cvsGenerated === 0 && !flowPaid; // primer flujo gratis hasta matriz
 
   const selectedSuggestions = useMemo(() => {
@@ -103,7 +104,23 @@ function MatchPage() {
   const toggleAddition = (rowKey: string) => setGapSel(prev => { const cur = prev.additions[rowKey] ?? { text: "", selected: false }; return { ...prev, additions: { ...prev.additions, [rowKey]: { ...cur, selected: !cur.selected } } }; });
 
   const buildStrategy = async () => {
-    if (!worksheet || !role) { toast.error("Faltan datos."); return; }
+    if (!worksheet || !role || !user) { toast.error("Faltan datos."); return; }
+
+    // Punto de cobro del flujo. Si ya pagó este flujo, avanza gratis.
+    if (!flowPaid) {
+      // Prueba gratis sin créditos: mostrar paywall, no avanzar
+      if ((credits ?? 0) < 1) {
+        setShowPaywall(true);
+        return;
+      }
+      // Tiene créditos: consumir uno (cubre estrategia + CV de este flujo)
+      const { data: remaining, error: creditError } = await supabase.rpc("consume_credit", { _user_id: user.id });
+      if (creditError) { setShowPaywall(true); return; }
+      setCredits(remaining as number);
+      setFlowPaid(true);
+      toast.success("Crédito aplicado", { description: `Este flujo (estrategia + CV) ya está cubierto. Te ${(remaining as number) === 1 ? "queda" : "quedan"} ${remaining} crédito(s).` });
+    }
+
     setBusy(true);
     try {
       const res = await runStrategy({ data: { worksheet, role, matrix, selectedSuggestions, roleTitle: meta.roleTitle, company: meta.company } });
