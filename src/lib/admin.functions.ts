@@ -33,12 +33,12 @@ export const listAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
-    const { data: profiles, error } = await supabaseAdmin.from("profiles").select("id, email, full_name, created_at").order("created_at", { ascending: false });
+    const { data: profiles, error } = await supabaseAdmin.from("profiles").select("id, email, full_name, created_at, credits, cvs_generated").order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
     const roleMap = new Map<string, string[]>();
     for (const r of roles ?? []) { const arr = roleMap.get(r.user_id) ?? []; arr.push(r.role); roleMap.set(r.user_id, arr); }
-    return (profiles ?? []).map(p => ({ id: p.id, email: p.email, fullName: p.full_name, createdAt: p.created_at, isAdmin: (roleMap.get(p.id) ?? []).includes("admin") }));
+    return (profiles ?? []).map(p => ({ id: p.id, email: p.email, fullName: p.full_name, createdAt: p.created_at, credits: p.credits ?? 0, cvsGenerated: p.cvs_generated ?? 0, isAdmin: (roleMap.get(p.id) ?? []).includes("admin") }));
   });
 
 export const revokeAccess = createServerFn({ method: "POST" })
@@ -52,4 +52,25 @@ export const revokeAccess = createServerFn({ method: "POST" })
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
     return { ok: true };
+  });
+
+
+export const grantCredits = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ userId: z.string().uuid(), amount: z.number().int().min(1).max(100) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: profile, error } = await supabaseAdmin
+      .from("profiles")
+      .select("credits")
+      .eq("id", data.userId)
+      .single();
+    if (error) throw new Error(error.message);
+    const newTotal = (profile.credits ?? 0) + data.amount;
+    const { error: updateError } = await supabaseAdmin
+      .from("profiles")
+      .update({ credits: newTotal })
+      .eq("id", data.userId);
+    if (updateError) throw new Error(updateError.message);
+    return { credits: newTotal };
   });
