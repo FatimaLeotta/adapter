@@ -14,9 +14,9 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 // Links de pago de Mercado Pago — reemplazar por los tuyos reales
 const PACKS = [
-  { credits: 1, price: "$3.000", perCv: "$3.000 c/u", link: "https://mpago.la/2ZrMRnG" },
-  { credits: 3, price: "$7.500", perCv: "$2.500 c/u", link: "https://mpago.la/1TEJqb9", popular: true },
-  { credits: 5, price: "$11.000", perCv: "$2.200 c/u", link: "https://mpago.la/1epGph1" },
+  { credits: 1, price: "$4.000", perCv: "$4.000 c/u", link: "https://mpago.la/2ZrMRnG" },
+  { credits: 3, price: "$9.000", perCv: "$3.000 c/u", link: "https://mpago.la/1TEJqb9", popular: true },
+  { credits: 5, price: "$12.500", perCv: "$2.500 c/u", link: "https://mpago.la/1epGph1" },
 ];
 
 function SettingsPage() {
@@ -64,7 +64,7 @@ function SettingsPage() {
           </span>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          La entrevista, la carga del rol y la matriz comparativa son gratis. Cada CV generado usa 1 crédito. Regenerar un CV usa otro crédito.
+          Un crédito cubre un flujo completo: entrevista, carga del rol, matriz descargable y CV. La primera vez podés ver la matriz gratis (sin descargar); para descargarla y generar el CV, usás tu primer crédito. Cada flujo nuevo usa un crédito.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {PACKS.map(p => (
