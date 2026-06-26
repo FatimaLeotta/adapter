@@ -35,7 +35,7 @@ function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Logo className="mx-auto h-6 text-foreground" />
+          <Logo className="mx-auto h-14" />
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">Ingresar</h1>
           <p className="mt-2 text-sm text-muted-foreground">Accedé con el email y la contraseña que te compartieron.</p>
         </div>
