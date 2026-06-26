@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
@@ -18,6 +19,17 @@ function AuthenticatedLayout() {
   const { user, loading, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: s => s.location.pathname });
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = () => supabase.from("profiles").select("credits").eq("id", user.id).maybeSingle().then(({ data }) => setCredits(data?.credits ?? 0));
+    load();
+    // Refrescar saldo al volver de otra pestaña o navegar
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [user, pathname]);
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/login", replace: true }); }, [user, loading, navigate]);
 
@@ -39,6 +51,9 @@ function AuthenticatedLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <Link to="/settings" className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20" title="Créditos disponibles">
+              {credits === null ? "…" : `${credits} CV`}
+            </Link>
             <Link to="/settings" className={cn("text-sm font-medium transition-colors", pathname.startsWith("/settings") ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>Configuración</Link>
             <Button variant="outline" size="sm" onClick={async () => { await signOut(); navigate({ to: "/login", replace: true }); }}>Salir</Button>
           </div>
