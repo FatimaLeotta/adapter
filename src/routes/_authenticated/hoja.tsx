@@ -117,7 +117,16 @@ function HojaPage() {
             {originalData && <Button variant="ghost" size="sm" onClick={cancelGeneralEdit}>Cancelar edición general</Button>}
           </div>
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-            {messages.length === 0 && <div className="text-center"><p className="mb-3 text-sm text-muted-foreground">Cuando quieras, arrancamos.</p><Button onClick={startInterview} disabled={thinking}>Empezar entrevista</Button></div>}
+            {messages.length === 0 && (
+              <div className="mx-auto max-w-md text-center">
+                <div className="mb-4 rounded-lg border border-accent/30 bg-accent/5 p-4 text-left">
+                  <p className="text-sm leading-relaxed text-foreground">
+                    Esto va a llevarte tiempo. Cada respuesta es la base para que tus CVs estén potenciados al máximo. Respondé a conciencia y haciendo el mayor esfuerzo para que tus respuestas sean lo más completas posibles. No te preocupes si olvidás algo, luego vas a poder editar y completar. Pero no lo olvides: <span className="font-display italic text-accent">aquí empieza tu próxima oportunidad laboral.</span>
+                  </p>
+                </div>
+                <Button onClick={startInterview} disabled={thinking}>Empezar entrevista</Button>
+              </div>
+            )}
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "ml-auto max-w-[85%] rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground" : "mr-auto max-w-[85%] whitespace-pre-wrap rounded-lg bg-secondary px-3 py-2 text-sm text-foreground"}>{m.content}</div>
             ))}
