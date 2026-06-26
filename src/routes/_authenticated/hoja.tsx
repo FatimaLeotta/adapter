@@ -28,6 +28,7 @@ function HojaPage() {
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [data, setData] = useState<WorkSheetData>(emptyWorkSheet());
   const [originalData, setOriginalData] = useState<WorkSheetData | null>(null);
+  const [savedSnapshot, setSavedSnapshot] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -39,7 +40,7 @@ function HojaPage() {
   useEffect(() => {
     if (!user) return;
     supabase.from("work_sheets").select("id, data").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle().then(({ data: row }) => {
-      if (row) { setSheetId(row.id); setData(row.data as WorkSheetData); setMode("editing"); }
+      if (row) { setSheetId(row.id); setData(row.data as WorkSheetData); setSavedSnapshot(JSON.stringify(row.data)); setMode("editing"); }
       else setMode("interview");
     });
   }, [user]);
@@ -60,7 +61,7 @@ function HojaPage() {
   };
 
   const startInterview = () => { setInterviewDone(false); send("Empecemos la entrevista."); };
-  const finishInterview = () => { editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); toast.success("Entrevista finalizada", { description: "Revisá tu hoja laboral y guardá los cambios." }); };
+  const finishInterview = () => { editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); toast.success("Listo", { description: "Revisá tu hoja laboral y guardá los cambios." }); };
   const startGeneralEdit = () => { setOriginalData(data); setMessages([]); setInterviewDone(false); setMode("interview"); void send("Quiero revisar y rehacer mi hoja laboral completa desde cero."); };
   const cancelGeneralEdit = () => { if (originalData) setData(originalData); setOriginalData(null); setMessages([]); setMode("editing"); };
 
@@ -80,7 +81,7 @@ function HojaPage() {
         const { data: row, error } = await supabase.from("work_sheets").insert({ user_id: user.id, data, title: "mi hoja laboral" }).select("id").single();
         if (error) throw error; setSheetId(row.id);
       }
-      setMode("editing"); setOriginalData(null); toast.success("Hoja laboral guardada");
+      setMode("editing"); setOriginalData(null); setSavedSnapshot(JSON.stringify(data)); toast.success("Hoja laboral guardada");
     } catch (e) { toast.error("No se pudo guardar", { description: e instanceof Error ? e.message : "" }); }
     finally { setSaving(false); }
   };
@@ -104,6 +105,8 @@ function HojaPage() {
   const removeLanguage = (i: number) => setData(d => ({ ...d, languages: d.languages.filter((_, idx) => idx !== i) }));
 
   if (mode === "loading") return <p className="text-sm text-muted-foreground">Cargando tu hoja laboral…</p>;
+
+  const isDirty = JSON.stringify(data) !== savedSnapshot;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -136,9 +139,9 @@ function HojaPage() {
         <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
           <div><h2 className="font-semibold text-foreground">Mi hoja laboral</h2><p className="text-xs text-muted-foreground">{mode === "interview" ? "Revisá y corregí antes de guardar." : "Editá por dato o rehacé la entrevista completa."}</p></div>
           <div className="flex flex-wrap justify-end gap-2">
-            {mode === "editing" && <Button variant="outline" size="sm" onClick={startGeneralEdit}>Edición general</Button>}
+            {mode === "editing" && <Button variant="outline" size="sm" onClick={startGeneralEdit}>Editar hoja laboral</Button>}
             <Button variant="outline" size="sm" onClick={doExport}>Descargar Word</Button>
-            <Button size="sm" onClick={save} disabled={saving}>{saving ? "Guardando…" : mode === "interview" ? originalData ? "Guardar edición general" : "Revisar y guardar" : "Guardar cambios"}</Button>
+            {(mode === "interview" || isDirty) && <Button size="sm" onClick={save} disabled={saving}>{saving ? "Guardando…" : mode === "interview" ? originalData ? "Guardar cambios" : "Revisar y guardar" : "Guardar cambios"}</Button>}
           </div>
         </div>
         <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
