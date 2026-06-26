@@ -226,9 +226,14 @@ function MatchPage() {
           <StrategySummary strategy={strategy} />
           <div className="rounded-lg border bg-secondary/40 p-5">
             <p className="text-sm font-medium text-foreground">¿Querés continuar o hacer algún ajuste antes de generar el CV?</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <Button onClick={confirmAndGenerate} disabled={busy}>{busy ? "Generando CV…" : "Continuar y generar CV"}</Button>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {(credits ?? 0) >= 1 ? (
+                <Button onClick={confirmAndGenerate} disabled={busy}>{busy ? "Generando CV…" : "Continuar y generar CV (1 crédito)"}</Button>
+              ) : (
+                <Link to="/settings" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Comprar créditos para generar el CV</Link>
+              )}
               <Button variant="outline" onClick={backToMatrix} disabled={busy}>Revisar matriz</Button>
+              {credits !== null && <span className="text-xs text-muted-foreground">Tenés {credits} crédito(s)</span>}
             </div>
           </div>
         </section>
