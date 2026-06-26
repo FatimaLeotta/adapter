@@ -10,6 +10,30 @@ import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/admin")({ component: AdminPage });
 
+const APP_URL = "https://adapter-blond.vercel.app";
+
+function buildMailto(email: string, password: string): string {
+  const subject = "Tus accesos a Adapter";
+  const body = [
+    "¡Hola!",
+    "",
+    "Te comparto tus accesos para entrar a Adapter, la herramienta para adaptar tu CV a cada rol:",
+    "",
+    `Ingresá en: ${APP_URL}/login`,
+    `Email: ${email}`,
+    `Contraseña: ${password}`,
+    "",
+    "Una vez adentro, podés cambiar tu contraseña desde Configuración.",
+    "",
+    "La entrevista para armar tu hoja laboral, la carga del rol y la matriz comparativa son gratis. Para generar el CV final usás un crédito, que podés comprar desde Configuración.",
+    "",
+    "Cualquier duda, escribime.",
+    "",
+    "Fátima",
+  ].join("\n");
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 type AccessRow = { id: string; email: string | null; fullName: string | null; createdAt: string; credits: number; cvsGenerated: number; isAdmin: boolean };
 
 function AdminPage() {
@@ -76,7 +100,18 @@ function AdminPage() {
           <p className="text-sm font-medium text-foreground">Acceso generado</p>
           <p className="mt-1 text-sm text-muted-foreground">Email: <span className="font-mono text-foreground">{generated.email}</span></p>
           <p className="text-sm text-muted-foreground">Contraseña: <span className="font-mono text-foreground">{generated.password}</span></p>
-          <p className="mt-2 text-xs text-muted-foreground">Compartila de forma segura.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href={buildMailto(generated.email, generated.password)}
+              className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Enviar accesos por mail
+            </a>
+            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(`Email: ${generated.email}\nContraseña: ${generated.password}\nIngresá en: ${APP_URL}/login`); toast.success("Copiado al portapapeles"); }}>
+              Copiar accesos
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">El botón abre tu correo con el mensaje ya redactado. Solo revisás y enviás.</p>
         </div>
       )}
       <section>
