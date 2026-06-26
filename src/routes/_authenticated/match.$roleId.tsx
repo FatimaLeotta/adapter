@@ -81,7 +81,7 @@ function MatchPage() {
         const savedStrategy = existing.strategy as unknown as StrategyData;
         if (savedStrategy && Object.keys(savedStrategy).length > 0) setStrategy(savedStrategy);
         const savedCv = existing.cv as unknown as CvData;
-        if (savedCv && Object.keys(savedCv).length > 0) { setCv(savedCv); if (savedCv.accentColor) setAccent(savedCv.accentColor); }
+        if (savedCv && Object.keys(savedCv).length > 0) { setCv(savedCv); setFlowPaid(true); if (savedCv.accentColor) setAccent(savedCv.accentColor); }
         setStage((existing.stage as Stage) ?? "analysis"); setLoading(false); return;
       }
       if (!sheet) { toast.error("Necesitás una hoja laboral guardada."); setLoading(false); return; }
