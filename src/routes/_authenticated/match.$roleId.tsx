@@ -229,9 +229,19 @@ function MatchPage() {
             </table>
           </div>
           {stage === "analysis" && (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Button onClick={buildStrategy} disabled={busy}>{busy ? "Construyendo estrategia…" : "Construir estrategia de compensación"}</Button>
-              <span className="text-xs text-muted-foreground">{selectedSuggestions.length} sugerencia(s) seleccionada(s)</span>
+            <div className="mt-4 space-y-2">
+              {isFreeTrial && (
+                <p className="rounded-md border border-accent/30 bg-accent/5 p-3 text-sm text-foreground">
+                  Estás en tu <span className="font-medium">prueba gratis</span>: podés ver la matriz, pero para descargarla y generar tu CV necesitás un crédito. Un crédito cubre el flujo completo: entrevista, rol, matriz y CV.
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <Button onClick={buildStrategy} disabled={busy}>
+                  {busy ? "Construyendo estrategia…" : isFreeTrial || (credits ?? 0) < 1 && !flowPaid ? "Desbloquear y construir estrategia" : flowPaid ? "Construir estrategia de compensación" : "Construir estrategia (usa 1 crédito)"}
+                </Button>
+                <span className="text-xs text-muted-foreground">{selectedSuggestions.length} sugerencia(s) seleccionada(s)</span>
+                {credits !== null && !flowPaid && <span className="text-xs text-muted-foreground">· Tenés {credits} crédito(s)</span>}
+              </div>
             </div>
           )}
         </section>
