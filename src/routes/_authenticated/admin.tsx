@@ -31,7 +31,23 @@ function buildMailto(email: string, password: string): string {
     "",
     "Fátima",
   ].join("\n");
-  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // Gmail web compose — funciona en el navegador sin depender de una app de correo
+  return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function buildWhatsapp(email: string, password: string): string {
+  const msg = [
+    "¡Hola! Te comparto tus accesos a Adapter, la herramienta para adaptar tu CV a cada rol:",
+    "",
+    `Ingresá en: ${APP_URL}/login`,
+    `Email: ${email}`,
+    `Contraseña: ${password}`,
+    "",
+    "Adentro podés cambiar tu contraseña desde Configuración. La entrevista, la carga del rol y la matriz son gratis; el CV final usa un crédito que comprás desde Configuración.",
+    "",
+    "Cualquier duda, escribime. ¡Éxitos!",
+  ].join("\n");
+  return `https://wa.me/?text=${encodeURIComponent(msg)}`;
 }
 
 type AccessRow = { id: string; email: string | null; fullName: string | null; createdAt: string; credits: number; cvsGenerated: number; isAdmin: boolean };
@@ -103,15 +119,25 @@ function AdminPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             <a
               href={buildMailto(generated.email, generated.password)}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
-              Enviar accesos por mail
+              Enviar por Gmail
             </a>
-            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(`Email: ${generated.email}\nContraseña: ${generated.password}\nIngresá en: ${APP_URL}/login`); toast.success("Copiado al portapapeles"); }}>
-              Copiar accesos
+            <a
+              href={buildWhatsapp(generated.email, generated.password)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+            >
+              Enviar por WhatsApp
+            </a>
+            <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(`Ingresá en: ${APP_URL}/login\nEmail: ${generated.email}\nContraseña: ${generated.password}`); toast.success("Copiado al portapapeles"); }}>
+              Copiar
             </Button>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">El botón abre tu correo con el mensaje ya redactado. Solo revisás y enviás.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Gmail abre el correo redactado en una pestaña nueva. WhatsApp abre el mensaje listo para elegir contacto.</p>
         </div>
       )}
       <section>
