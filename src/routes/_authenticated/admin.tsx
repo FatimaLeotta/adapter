@@ -3,14 +3,14 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { createAccess, listAccess, revokeAccess } from "@/lib/admin.functions";
+import { createAccess, listAccess, revokeAccess, grantCredits } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/admin")({ component: AdminPage });
 
-type AccessRow = { id: string; email: string | null; fullName: string | null; createdAt: string; isAdmin: boolean };
+type AccessRow = { id: string; email: string | null; fullName: string | null; createdAt: string; credits: number; cvsGenerated: number; isAdmin: boolean };
 
 function AdminPage() {
   const { isAdmin, loading } = useAuth();
@@ -18,6 +18,7 @@ function AdminPage() {
   const runList = useServerFn(listAccess);
   const runCreate = useServerFn(createAccess);
   const runRevoke = useServerFn(revokeAccess);
+  const runGrant = useServerFn(grantCredits);
   const [rows, setRows] = useState<AccessRow[]>([]);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
@@ -41,6 +42,18 @@ function AdminPage() {
     if (!confirm("¿Revocar el acceso de esta persona? Se borrará su cuenta.")) return;
     try { await runRevoke({ data: { userId } }); toast.success("Acceso revocado"); refresh(); }
     catch (e) { toast.error("No se pudo revocar", { description: e instanceof Error ? e.message : "" }); }
+  };
+
+  const grant = async (userId: string, email: string | null) => {
+    const input = prompt(`¿Cuántos créditos cargar a ${email}?`, "3");
+    if (!input) return;
+    const amount = parseInt(input, 10);
+    if (isNaN(amount) || amount < 1) { toast.error("Cantidad inválida"); return; }
+    try {
+      const res = await runGrant({ data: { userId, amount } });
+      toast.success(`Créditos cargados`, { description: `${email} ahora tiene ${res.credits} crédito(s).` });
+      refresh();
+    } catch (e) { toast.error("No se pudo cargar créditos", { description: e instanceof Error ? e.message : "" }); }
   };
 
   if (loading || !isAdmin) return null;
@@ -70,14 +83,21 @@ function AdminPage() {
         <h2 className="mb-3 font-semibold text-foreground">Accesos</h2>
         <div className="overflow-hidden rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-secondary"><tr><th className="p-3 text-left font-medium">Email</th><th className="p-3 text-left font-medium">Nombre</th><th className="p-3 text-left font-medium">Rol</th><th className="p-3"></th></tr></thead>
+            <thead className="bg-secondary"><tr><th className="p-3 text-left font-medium">Email</th><th className="p-3 text-left font-medium">Nombre</th><th className="p-3 text-center font-medium">Créditos</th><th className="p-3 text-center font-medium">CVs</th><th className="p-3 text-left font-medium">Rol</th><th className="p-3"></th></tr></thead>
             <tbody>
               {rows.map(r => (
                 <tr key={r.id} className="border-t">
                   <td className="p-3 text-foreground">{r.email}</td>
                   <td className="p-3 text-muted-foreground">{r.fullName || "—"}</td>
+                  <td className="p-3 text-center"><span className="font-medium text-primary">{r.credits}</span></td>
+                  <td className="p-3 text-center text-muted-foreground">{r.cvsGenerated}</td>
                   <td className="p-3 text-muted-foreground">{r.isAdmin ? "Admin" : "Usuario"}</td>
-                  <td className="p-3 text-right">{!r.isAdmin && <Button variant="outline" size="sm" onClick={() => revoke(r.id)}>Revocar</Button>}</td>
+                  <td className="p-3">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => grant(r.id, r.email)}>+ Créditos</Button>
+                      {!r.isAdmin && <Button variant="outline" size="sm" onClick={() => revoke(r.id)}>Revocar</Button>}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
