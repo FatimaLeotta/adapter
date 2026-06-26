@@ -15,6 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 type Stage = "analysis" | "strategy" | "final";
 
+const PACKS = [
+  { credits: 1, price: "$4.000", perCv: "$4.000 c/u", link: "https://mpago.la/2ZrMRnG" },
+  { credits: 3, price: "$9.000", perCv: "$3.000 c/u", link: "https://mpago.la/1TEJqb9", popular: true },
+  { credits: 5, price: "$12.500", perCv: "$2.500 c/u", link: "https://mpago.la/1epGph1" },
+];
+
 export const Route = createFileRoute("/_authenticated/match/$roleId")({ component: MatchPage });
 
 function MatchPage() {
@@ -162,6 +168,7 @@ function MatchPage() {
   };
 
   const downloadMatrixFn = async () => {
+    if (isFreeTrial) { setShowPaywall(true); return; }
     try { const { base64 } = await runMatrix({ data: { matrix, roleTitle: meta.roleTitle, company: meta.company, score, explanation } }); downloadBase64Docx(base64, `mi matriz para ${meta.roleTitle} en ${meta.company}`); }
     catch (e) { toast.error("No se pudo exportar", { description: e instanceof Error ? e.message : "" }); }
   };
