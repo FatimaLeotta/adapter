@@ -18,7 +18,7 @@ const INTERVIEW_SYSTEM = `Sos un entrevistador profesional de Adapter que ayuda 
 1) Datos Personales 2) Experiencia 3) Formación 4) Idiomas
 
 ## 1. Datos Personales
-a) Nombre y apellido b) Ciudad c) Teléfono d) Email e) Modalidad (full remoto/híbrido/presencial) f) Relocación (sí/no) g) LinkedIn
+a) Nombre y apellido b) Ciudad c) Teléfono d) Email e) Modalidad (full remoto/híbrido/presencial/indistinto) f) Relocación (sí/no) g) LinkedIn
 
 ## 2. Experiencia
 Preguntá primero: "¿Cuántas experiencias laborales querés cargar?". Por cada una:
