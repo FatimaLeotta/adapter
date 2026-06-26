@@ -115,6 +115,14 @@ function MatchPage() {
 
   const backToMatrix = async () => { setStage("analysis"); if (docId) await supabase.from("cv_documents").update({ stage: "analysis" }).eq("id", docId); };
 
+  // Reabre la matriz en modo edición para probar otra estrategia/CV en el mismo rol
+  const editSelection = async () => {
+    setStage("analysis");
+    if (docId) await supabase.from("cv_documents").update({ stage: "analysis" }).eq("id", docId);
+    toast.info("Editá las sugerencias", { description: "Cambiá la selección y volvé a construir la estrategia para un CV distinto." });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const changeAccent = async (value: string) => {
     setAccent(value); if (!cv) return;
     const updated = { ...cv, accentColor: value }; setCv(updated);
@@ -153,11 +161,14 @@ function MatchPage() {
 
       {(stage === "analysis" || stage === "final") && (
         <section>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold text-foreground">Matriz comparativa</h2>
-            <Button variant="outline" size="sm" onClick={downloadMatrixFn}>Descargar matriz (Word)</Button>
+            <div className="flex flex-wrap gap-2">
+              {stage === "final" && <Button variant="outline" size="sm" onClick={editSelection}>Editar selección y regenerar CV</Button>}
+              <Button variant="outline" size="sm" onClick={downloadMatrixFn}>Descargar matriz (Word)</Button>
+            </div>
           </div>
-          {stage === "analysis" && <p className="mb-3 max-w-3xl text-sm text-muted-foreground">Para cada gap te mostramos sugerencias concretas e inferidas. Marcá las que quieras usar en tu CV.</p>}
+          {stage === "analysis" && <p className="mb-3 max-w-3xl text-sm text-muted-foreground">Para cada gap te mostramos sugerencias concretas e inferidas. Marcá las que quieras usar en tu CV.{cv ? " Al reconstruir la estrategia, el CV anterior se reemplaza." : ""}</p>}
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full border-collapse text-sm">
               <thead>
