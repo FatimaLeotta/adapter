@@ -132,23 +132,15 @@ function MatchPage() {
 
   const confirmAndGenerate = async () => {
     if (!worksheet || !role || !strategy || !user) return;
-    // Si ya hay un CV generado para este rol, regenerar cuesta otro crédito
-    const isRegeneration = cvAlreadyGenerated;
-    if ((credits ?? 0) < 1) {
-      toast.error("Sin créditos", { description: "Necesitás un crédito para generar el CV. Compralo desde Configuración." });
-      return;
-    }
     setBusy(true);
     try {
-      // Descontar crédito de forma atómica ANTES de generar
-      const { data: remaining, error: creditError } = await supabase.rpc("consume_credit", { _user_id: user.id });
-      if (creditError) { toast.error("Sin créditos disponibles", { description: "Recargá para generar el CV." }); setBusy(false); return; }
-      setCredits(remaining as number);
-
       const res = await runCvFn({ data: { worksheet, role, matrix, strategy, selectedSuggestions, roleTitle: meta.roleTitle, company: meta.company } });
       const fullCv: CvData = { ...res, accentColor: accent }; setCv(fullCv); setStage("final");
+      // Marcar que el usuario generó un CV (cierra el flujo y lo saca de prueba gratis a futuro)
+      await supabase.rpc("mark_cv_generated", { _user_id: user.id });
+      setCvsGenerated((n) => n + 1);
       if (docId) await supabase.from("cv_documents").update({ cv: JSON.parse(JSON.stringify(fullCv)), stage: "final" }).eq("id", docId);
-      toast.success(isRegeneration ? "CV regenerado" : "CV generado", { description: `Te ${(remaining as number) === 1 ? "queda" : "quedan"} ${remaining} crédito(s).` });
+      toast.success("CV generado", { description: "Ya podés descargar la matriz y el CV." });
     } catch (e) { toast.error("No se pudo generar el CV", { description: e instanceof Error ? e.message : "" }); }
     finally { setBusy(false); }
   };
