@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({ className, variant = "black" }: { className?: string; variant?: "black" | "white" }) {
   return (
     <img
-      src="/logo.png"
+      src={variant === "white" ? "/logo-white.png" : "/logo-black.png"}
       alt="fátima Leotta"
-      className={cn("h-10 w-auto object-contain", className)}
+      className={cn("h-6 w-auto object-contain", className)}
     />
   );
 }
