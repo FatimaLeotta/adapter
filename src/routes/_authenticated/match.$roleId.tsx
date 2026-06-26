@@ -44,6 +44,7 @@ function MatchPage() {
   const [cvsGenerated, setCvsGenerated] = useState<number>(0);
   const [flowPaid, setFlowPaid] = useState(false); // si este flujo ya consumió su crédito
   const cvAlreadyGenerated = stage === "final" && !!cv;
+  const isFreeTrial = cvsGenerated === 0 && (credits ?? 0) === 0 && !flowPaid;
   const isFirstEver = cvsGenerated === 0 && !flowPaid; // primer flujo gratis hasta matriz
 
   const selectedSuggestions = useMemo(() => {
