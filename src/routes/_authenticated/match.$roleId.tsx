@@ -55,7 +55,7 @@ function MatchPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data: existing } = await supabase.from("cv_documents").select("*").eq("target_role_id", roleId).maybeSingle();
+      const { data: existing } = await supabase.from("cv_documents").select("*").eq("target_role_id", roleId).eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle();
       const { data: roleRow } = await supabase.from("target_roles").select("*").eq("id", roleId).maybeSingle();
       if (!roleRow) { toast.error("No encontramos ese rol."); setLoading(false); return; }
       setMeta({ roleTitle: roleRow.role_title, company: roleRow.company });
