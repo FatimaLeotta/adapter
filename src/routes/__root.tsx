@@ -12,8 +12,8 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <div className="mt-6"><Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">Go home</Link></div>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página no encontrada</h2>
+        <div className="mt-6"><Link to="/" className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Ir al inicio</Link></div>
       </div>
     </div>
   );
@@ -25,10 +25,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold text-foreground">This page didn't load</h1>
+        <h1 className="text-xl font-semibold text-foreground">Esta página no cargó</h1>
         <div className="mt-6 flex gap-2 justify-center">
-          <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Try again</button>
-          <a href="/" className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm">Go home</a>
+          <button onClick={() => { router.invalidate(); reset(); }} className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Reintentar</button>
+          <a href="/" className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm">Ir al inicio</a>
         </div>
       </div>
     </div>
@@ -70,12 +70,33 @@ function RootComponent() {
   );
 }
 
+// Syncs the Supabase access token to a cookie so server functions can read it
+function setAccessTokenCookie(token: string | null) {
+  if (typeof document === "undefined") return;
+  if (token) {
+    document.cookie = `sb-access-token=${token};path=/;max-age=3600;SameSite=Lax`;
+  } else {
+    document.cookie = `sb-access-token=;path=/;max-age=0`;
+  }
+}
+
 function AuthSync() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => { router.invalidate(); queryClient.invalidateQueries(); });
+    // Set cookie from current session on mount
+    supabase.auth.getSession().then(({ data }) => {
+      setAccessTokenCookie(data.session?.access_token ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAccessTokenCookie(session?.access_token ?? null);
+      router.invalidate();
+      queryClient.invalidateQueries();
+    });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
+
   return null;
 }
