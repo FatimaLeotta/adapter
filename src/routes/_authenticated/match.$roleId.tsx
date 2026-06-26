@@ -41,7 +41,10 @@ function MatchPage() {
   const [role, setRole] = useState<RoleData | null>(null);
   const [accent, setAccent] = useState(ACCENT_PRESETS[0].value);
   const [credits, setCredits] = useState<number | null>(null);
+  const [cvsGenerated, setCvsGenerated] = useState<number>(0);
+  const [flowPaid, setFlowPaid] = useState(false); // si este flujo ya consumió su crédito
   const cvAlreadyGenerated = stage === "final" && !!cv;
+  const isFirstEver = cvsGenerated === 0 && !flowPaid; // primer flujo gratis hasta matriz
 
   const selectedSuggestions = useMemo(() => {
     const out: string[] = [];
@@ -56,7 +59,7 @@ function MatchPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("credits").eq("id", user.id).maybeSingle().then(({ data }) => setCredits(data?.credits ?? 0));
+    supabase.from("profiles").select("credits, cvs_generated").eq("id", user.id).maybeSingle().then(({ data }) => { setCredits(data?.credits ?? 0); setCvsGenerated(data?.cvs_generated ?? 0); });
   }, [user]);
 
   useEffect(() => {
