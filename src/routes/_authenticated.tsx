@@ -22,7 +22,7 @@ function AuthenticatedLayout() {
   useEffect(() => { if (!loading && !user) navigate({ to: "/login", replace: true }); }, [user, loading, navigate]);
 
   if (loading || !user) {
-    return <div className="flex min-h-screen items-center justify-center bg-background"><Logo className="h-9" /></div>;
+    return <div className="flex min-h-screen items-center justify-center bg-background"><Logo className="h-6" /></div>;
   }
 
   return (
@@ -30,7 +30,7 @@ function AuthenticatedLayout() {
       <header className="border-b bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-8">
-            <Link to="/app" className="flex items-center text-foreground"><Logo className="h-9" /></Link>
+            <Link to="/app" className="flex items-center text-foreground"><Logo className="h-6" /></Link>
             <nav className="flex flex-wrap items-center gap-1">
               {NAV.map(item => (
                 <Link key={item.to} to={item.to} className={cn("rounded-md px-3 py-1.5 text-sm font-medium transition-colors", pathname.startsWith(item.to) ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground")}>{item.label}</Link>
