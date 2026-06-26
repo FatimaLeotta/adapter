@@ -33,12 +33,43 @@ export const listAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
-    const { data: profiles, error } = await supabaseAdmin.from("profiles").select("id, email, full_name, created_at, credits, cvs_generated").order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
+
+    // Fuente de verdad: los usuarios de autenticación (aparecen aunque no tengan perfil)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (authError) throw new Error(authError.message);
+    const users = authData?.users ?? [];
+
+    // Perfiles (créditos, CVs) y roles
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, email, full_name, credits, cvs_generated");
     const { data: roles } = await supabaseAdmin.from("user_roles").select("user_id, role");
+
+    const profileMap = new Map((profiles ?? []).map(p => [p.id, p]));
     const roleMap = new Map<string, string[]>();
     for (const r of roles ?? []) { const arr = roleMap.get(r.user_id) ?? []; arr.push(r.role); roleMap.set(r.user_id, arr); }
-    return (profiles ?? []).map(p => ({ id: p.id, email: p.email, fullName: p.full_name, createdAt: p.created_at, credits: p.credits ?? 0, cvsGenerated: p.cvs_generated ?? 0, isAdmin: (roleMap.get(p.id) ?? []).includes("admin") }));
+
+    // Crear perfil faltante para usuarios que no lo tengan (auto-reparación)
+    for (const u of users) {
+      if (!profileMap.has(u.id)) {
+        await supabaseAdmin.from("profiles").insert({
+          id: u.id,
+          email: u.email ?? null,
+          full_name: (u.user_metadata as { full_name?: string } | null)?.full_name ?? null,
+        });
+      }
+    }
+
+    return users.map(u => {
+      const p = profileMap.get(u.id);
+      return {
+        id: u.id,
+        email: u.email ?? null,
+        fullName: p?.full_name ?? (u.user_metadata as { full_name?: string } | null)?.full_name ?? null,
+        createdAt: u.created_at,
+        credits: p?.credits ?? 0,
+        cvsGenerated: p?.cvs_generated ?? 0,
+        isAdmin: (roleMap.get(u.id) ?? []).includes("admin"),
+      };
+    });
   });
 
 export const revokeAccess = createServerFn({ method: "POST" })
