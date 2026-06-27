@@ -54,6 +54,8 @@ function HojaPage() {
       const res = await runInterview({ data: { messages: next, current: data } });
       setMessages([...next, { role: "assistant", content: res.reply }]);
       setData(res.data); setInterviewDone(res.done);
+      // Autoguardar el progreso para no perder lo cargado si se cierra la página
+      void autosave(res.data);
     } catch (e) {
       toast.error("Error en la entrevista", { description: e instanceof Error ? e.message : "Intentá de nuevo." });
       setMessages(next);
@@ -64,6 +66,27 @@ function HojaPage() {
   const finishInterview = () => { editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); toast.success("Listo", { description: "Revisá tu hoja laboral y guardá los cambios." }); };
   const startGeneralEdit = () => { setOriginalData(data); setMessages([]); setInterviewDone(false); setMode("interview"); void send("Quiero revisar y rehacer mi hoja laboral completa desde cero."); };
   const cancelGeneralEdit = () => { if (originalData) setData(originalData); setOriginalData(null); setMessages([]); setMode("editing"); };
+
+  // Guarda silenciosamente el progreso (sin toast) para no perder datos si se cierra la página
+  const autosave = async (snapshot: WorkSheetData) => {
+    if (!user) return;
+    try {
+      let targetId = sheetId;
+      if (!targetId) {
+        const { data: existing } = await supabase.from("work_sheets").select("id").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+        targetId = existing?.id ?? null;
+      }
+      if (targetId) {
+        await supabase.from("work_sheets").update({ data: snapshot }).eq("id", targetId);
+        setSheetId(targetId);
+      } else {
+        const { data: row } = await supabase.from("work_sheets").insert({ user_id: user.id, data: snapshot, title: "mi hoja laboral" }).select("id").single();
+        if (row) setSheetId(row.id);
+      }
+    } catch {
+      // Silencioso: si falla el autoguardado, no interrumpimos la entrevista
+    }
+  };
 
   const save = async () => {
     if (!user) return;
