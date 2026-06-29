@@ -39,9 +39,22 @@ function HojaPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("work_sheets").select("id, data").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle().then(({ data: row }) => {
-      if (row) { setSheetId(row.id); setData(row.data as WorkSheetData); setSavedSnapshot(JSON.stringify(row.data)); setMode("editing"); }
-      else setMode("interview");
+    supabase.from("work_sheets").select("id, data, interview_messages").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle().then(({ data: row }) => {
+      if (row) {
+        setSheetId(row.id);
+        setData(row.data as WorkSheetData);
+        setSavedSnapshot(JSON.stringify(row.data));
+        const savedMsgs = (row.interview_messages as ChatMessage[] | null) ?? [];
+        // Si había una entrevista en curso sin terminar, la restauramos para retomarla
+        if (savedMsgs.length > 0) {
+          setMessages(savedMsgs);
+          setMode("interview");
+        } else {
+          setMode("editing");
+        }
+      } else {
+        setMode("interview");
+      }
     });
   }, [user]);
 
@@ -50,12 +63,15 @@ function HojaPage() {
   const send = async (text: string) => {
     const next = [...messages, { role: "user" as const, content: text }];
     setMessages(next); setInput(""); setThinking(true);
+    // Guardar inmediatamente el mensaje del usuario (antes de que responda la IA)
+    void autosave(data, next, false);
     try {
       const res = await runInterview({ data: { messages: next, current: data } });
-      setMessages([...next, { role: "assistant", content: res.reply }]);
+      const updatedMessages = [...next, { role: "assistant" as const, content: res.reply }];
+      setMessages(updatedMessages);
       setData(res.data); setInterviewDone(res.done);
-      // Autoguardar el progreso para no perder lo cargado si se cierra la página
-      void autosave(res.data);
+      // Autoguardar datos + conversación completa para retomar si Safari cierra la pestaña
+      void autosave(res.data, updatedMessages, res.done);
     } catch (e) {
       toast.error("Error en la entrevista", { description: e instanceof Error ? e.message : "Intentá de nuevo." });
       setMessages(next);
@@ -68,19 +84,21 @@ function HojaPage() {
   const cancelGeneralEdit = () => { if (originalData) setData(originalData); setOriginalData(null); setMessages([]); setMode("editing"); };
 
   // Guarda silenciosamente el progreso (sin toast) para no perder datos si se cierra la página
-  const autosave = async (snapshot: WorkSheetData) => {
+  const autosave = async (snapshot: WorkSheetData, convo: ChatMessage[], done: boolean) => {
     if (!user) return;
     try {
+      // Si la entrevista terminó, limpiamos los mensajes guardados (ya no hay que retomar)
+      const msgsToSave = done ? [] : convo;
       let targetId = sheetId;
       if (!targetId) {
         const { data: existing } = await supabase.from("work_sheets").select("id").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(1).maybeSingle();
         targetId = existing?.id ?? null;
       }
       if (targetId) {
-        await supabase.from("work_sheets").update({ data: snapshot }).eq("id", targetId);
+        await supabase.from("work_sheets").update({ data: snapshot, interview_messages: msgsToSave }).eq("id", targetId);
         setSheetId(targetId);
       } else {
-        const { data: row } = await supabase.from("work_sheets").insert({ user_id: user.id, data: snapshot, title: "mi hoja laboral" }).select("id").single();
+        const { data: row } = await supabase.from("work_sheets").insert({ user_id: user.id, data: snapshot, interview_messages: msgsToSave, title: "mi hoja laboral" }).select("id").single();
         if (row) setSheetId(row.id);
       }
     } catch {
