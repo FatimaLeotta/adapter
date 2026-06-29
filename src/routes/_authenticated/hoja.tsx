@@ -154,7 +154,7 @@ function HojaPage() {
       {mode === "interview" && (
         <section className="flex h-[70vh] flex-col rounded-lg border bg-card">
           <div className="flex items-center justify-between border-b px-4 py-3">
-            <div><h2 className="font-semibold text-foreground">Hoja en blanco · entrevista</h2><p className="text-xs text-muted-foreground">Respondé una pregunta a la vez.</p></div>
+            <div><h2 className="font-semibold text-foreground">Hoja en blanco · entrevista</h2><p className="text-xs text-muted-foreground">Respondé una pregunta a la vez. ✓ Se guarda solo.</p></div>
             {originalData && <Button variant="ghost" size="sm" onClick={cancelGeneralEdit}>Cancelar edición general</Button>}
           </div>
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
@@ -162,7 +162,7 @@ function HojaPage() {
               <div className="mx-auto max-w-md text-center">
                 <div className="mb-4 rounded-lg border border-accent/30 bg-accent/5 p-4 text-left">
                   <p className="text-sm leading-relaxed text-foreground">
-                    Esto va a llevarte tiempo. Cada respuesta es la base para que tus CVs estén potenciados al máximo. Respondé a conciencia y haciendo el mayor esfuerzo para que tus respuestas sean lo más completas posibles. No te preocupes si olvidás algo, luego vas a poder editar y completar. Pero no lo olvides: <span className="font-display italic text-accent">aquí empieza tu próxima oportunidad laboral.</span>
+                    Esto va a llevarte tiempo. Cada respuesta es la base para que tus CVs estén potenciados al máximo. Respondé a conciencia y haciendo el mayor esfuerzo para que tus respuestas sean lo más completas posibles. No te preocupes si olvidás algo, luego vas a poder editar y completar. <span className="font-medium">Tu progreso se guarda solo</span>: podés cerrar y retomar cuando quieras. Pero no lo olvides: <span className="font-display italic text-accent">aquí empieza tu próxima oportunidad laboral.</span>
                   </p>
                 </div>
                 <Button onClick={startInterview} disabled={thinking}>Empezar entrevista</Button>
